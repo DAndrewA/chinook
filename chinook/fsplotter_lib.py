@@ -143,3 +143,70 @@ def change_kobject_TB(case,kobj,TB):
     return kobj,TB
     
     
+def create_basisObject(case):
+    '''
+    Function to create the Chinook basis object from a case.struct file
+    
+    
+    Things to do:
+        Extract the primitive lattice vectors
+        
+        Extract the information for each individual atom and get it into a format thats usable
+        
+        Get a system to convert atom type into Z, using that text file
+        
+        Make sure atom's are repeated properly within the BZ (space group, symmetry operations, etc.)
+        
+        
+    '''
+    # load in the text file
+    f = open('{}.struct'.format(case),'r')
+    #------ NOTE: This will initially work with primitive lattices
+    fcont = f.read().split('\n') # load the files contents as lines into fcont
+    f.close()
+    print('create_basisObject: Data loaded from {}.struct'.format(case))
+    
+    #take the first line of the file and use it as the label for the system
+    label = str([s for s in fcont[0].split(' ') if s])
+    
+    # lattice type appears to be the last element of the second line
+    lattice_type = [s for s in fcont[1].split(' ') if s][-1]
+    
+    # the third line contains info on the mode of calculation: relative or absolute coords, and lattice vectors in bohr or angstrom
+    line = fcont[2]
+    if 'MODE OF CALC' in line: # just checking correct line
+        elem = [s for s in line.split(' ') if s] # split line and remove whitespace
+        calc_mode = elem[2].split('=')[1] # gets the calc mode, RELA or (ABS?)
+        unit = elem[3].split('=')[1] # gets the unit type, bohr or (ang?)
+    else: print('create_basisObject: {}.struct format is unrecognised'.format(case))
+    
+    # the fourth line gives the a,b,c,alpha,beta,gamma values
+    # we can use these to obtain the lattice vectors
+    line = fcont[3]
+    elem = [s for s in line.split(' ') if s] # split line and remove whitespace
+    a = float(elem[0])
+    b = float(elem[1])
+    c = float(elem[2])
+    # angles are converted to radians
+    degToRad = np.pi / 180
+    alpha = float(elem[3]) * degToRad
+    beta = float(elem[4]) * degToRad
+    gamma = float(elem[5]) * degToRad
+    
+    vec_a = a * np.array([1,0,0])
+    vec_b = b * np.array([np.round(np.cos(gamma),decimals=8),np.round(np.sin(gamma),decimals=8),0])
+    
+    l = np.round(np.cos(beta) , decimals=8)
+    m = np.round(( np.cos(alpha) - (np.cos(gamma) * np.cos(beta)) ) / ( np.sin(gamma) ),decimals = 8)
+    n = np.round(np.sqrt( 1 - l**2 - m**2 ),decimals=8)
+    vec_c = c* np.array([l,m,n])
+    
+    avec = np.array([vec_a,vec_b,vec_c])
+    # need to perform unit change from bohr to angstrom in this.
+    print(avec)
+    
+    
+    
+    
+    
+    

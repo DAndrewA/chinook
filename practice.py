@@ -12,8 +12,12 @@ from chinook.ARPES_lib import experiment
 
 import chinook.fsplotter_lib as fs
 
+case = 'data/FeTe_19nov21'
+
 a,c = 6.911,12.314 #lattice parameters in angstroms
 avec = np.array([[a,0,0],[0,a,0],[0,0,c]])
+
+fs.create_basisObject(case)
 
 
 #--------------------- DEFNING kpath ------------------------------------------
@@ -85,7 +89,7 @@ TB.solve_H()
 
 
 # need to figure out how to get correct bands format into TB data structure
-case = 'data/FeTe_19nov21'
+
 k_object,TB = fs.change_kobject_TB(case, k_object, TB)
 
 TB.plotting(win_min=-14.0,win_max=8.0)
