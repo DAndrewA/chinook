@@ -177,38 +177,7 @@ def change_kobject_TB(case,kobj,TB):
     TB.basis = [ii for ii in range(numbands)]
     
     return kobj,TB
-    
-    
-def create_basisObject(case):
-    '''
-    Function to create the Chinook basis object from a case.struct file
-    
-    
-    Things to do:
-        Extract the primitive lattice vectors
         
-        Extract the information for each individual atom and get it into a format thats usable
-        
-        Get a system to convert atom type into Z, using that text file
-        
-        Make sure atom's are repeated properly within the BZ (space group, symmetry operations, etc.)
-        
-        
-    '''
-    # load in the text file
-    f = open('{}.struct'.format(case),'r')
-    #------ NOTE: This will initially work with primitive lattices
-    fcont = f.read().split('\n') # load the files contents as lines into fcont
-    f.close()
-    print('create_basisObject: Data loaded from {}.struct'.format(case))
-    
-    #take the first line of the file and use it as the label for the system
-    label = str([s for s in fcont[0].split(' ') if s])
-    
-    # lattice type appears to be the last element of the second line
-    lattice_type = [s for s in fcont[1].split(' ') if s][-1]
-    
-    
     
 def get_PLV_from_struct(case):
     '''
@@ -260,9 +229,85 @@ def get_PLV_from_struct(case):
     
     return avec
     
+def get_z_from_file():
+    '''
+    Function to load in the atomic_mass.txt file and put its contents into a dictionary
+    '''
+    f = open('chinook/atomic_mass.txt','r')
+    fcont = [line for line in f.read().split('\n') if line]
+    f.close()
+    Zdict = {}
+    for line in fcont:
+        elem = [e for e in line.split() if e]
+        Zdict[elem[1]] = int(elem[0])
+    return Zdict
     
+
     
+def get_atoms_from_struct(case,avec):
+    '''
+    Function for extracting the numebr of atoms in the basis and their positions,
+    using the case.struct file.
+    This will then be used to set up the dictionary for use in the basis object
+    '''
     
+    # need to open the file and extract its contents
+    f = open('{}.struct'.format(case),'r')
+    fcont = f.read().split('\n') # split the file into lines
+    f.close()
+    print('get_atoms_from_struct: Extracted data from {}.struct'.format(case))
+    
+    line = fcont[2] # extract the third line, to determine the calculation type for the atomic positions
+    if 'MODE OF CALC' in line:
+        # If we have the correct line, we take the mode of calculation, rela or abs
+        calc_mode = [e for e in line.split(' ') if e][2].split('=')[1].lower()
+    
+    Zdict = get_z_from_file()
+    
+    atoms = []
+    Z = {}
+    pos = []
+    fcont = fcont[4:]  # take the 5th line onwards, as first four are setup
+    for i,line in enumerate(fcont):
+        if 'ATOM' in line: # if the word atom is in the line, we've found a non-equivelent atom
+            j = 0
+            line = line[4:] # takes off the characters 'ATOM' from the line
+            while 'LOCAL ROT MATRIX' not in line: # keeps going for all the atoms of one type
+                elem = [e for e in line.split(' ') if e] # splits the line by spacing and removes whitespaces
+                atom_index = elem[0][1:-1] # removes the minus sign from the front and trailing colon
+                
+                print(elem)
+                
+                # need to extract the X, Y and Z values: (rounded to 8 dp)
+                # these values are relative to the lattice vectors
+                x = np.round(float(elem[1].split('=')[1]),decimals=8)
+                y = np.round(float(elem[2].split('=')[1]),decimals=8)
+                z = np.round(float(elem[3].split('=')[1]),decimals=8)
+    
+                # NEED TO LOOK INTO WHAT TO DO IF NOT RELATIVE!!!!
+                if calc_mode == 'rela':
+                    atom_pos = x*avec[0] + y*avec[1] + z*avec[2]
+                else:
+                    print('get_atoms_from_struct: calc_mode not RELA, send help!')
+                    return
+                
+                atoms.append(atom_index)
+                pos.append(atom_pos)
+                
+                j = j+ 2
+                line = fcont[i+j]
+            # once the line with 'LOCAL ROT MATRIX' has been reached, need to go back one line and extract atom type
+            line = fcont[i+j-1]
+            elem = [e for e in line.split(' ') if e]
+            
+            atom_type = elem[0] # extracts the string for the atom type
+            Z[atom_index] = Zdict[atom_type] # get_Z is placeholder for getting Z from atom string.
+            
+            i = i+j
+            
+               
+                
+            
     
     
     

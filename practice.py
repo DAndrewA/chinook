@@ -44,8 +44,10 @@ spin = {'bool':True,  #include spin-degree of freedom: double the orbital basis
 'soc':True,    #include atomic spin-orbit coupling in the calculation of the Hamiltonian
 'lam':{0:0.5}} #spin-orbit coupling strength in eV, require a value for each unique species in our basis
 
+
 Sb1 = np.array([0.0,0.0,0.0])
 Sb2 = np.array([np.sqrt(0.5)*a,0,0])
+
 
 basis = {'atoms':[0,0], #two equivalent atoms in the basis, both labelled as species #0
  'Z':{0:51},     #We only have one atomic species, which is antimony #51 in the periodic table.
@@ -56,6 +58,8 @@ basis = {'atoms':[0,0], #two equivalent atoms in the basis, both labelled as spe
 basis_object = build_lib.gen_basis(basis)
 
 
+
+#------------------------------------------------------------------------------
 
 
 # DEFININF THE TB HAMILTONIAN, THIS IS THE BIT WE WANT TO SKIP
