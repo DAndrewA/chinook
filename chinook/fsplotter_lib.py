@@ -9,6 +9,9 @@ import numpy as np
 # import other chinook files to help create correct data structures
 import chinook.klib as klib
 import chinook.TB_lib as TBlib
+import chinook.orbital as orblib
+import chinook.electron_configs as eclib
+import chinook.build_lib as buildlib
 
 
 # setting up fundamental constants
@@ -227,7 +230,7 @@ def get_PLV_from_struct(case):
         avec = avec / uBohr
     avec = avec * uAngs
     
-    return avec
+    return avec,a,b,c
     
 def get_z_from_file():
     '''
@@ -305,7 +308,73 @@ def get_atoms_from_struct(case,avec):
             
             i = i+j
             
+    return atoms,Z,pos
+            
                
+def get_orbitals_from_atoms(Z):
+    '''
+    Function to get lists with all the required orbiatals for atoms taken from struct
+    Z is the dictionary used to create the basis
+    '''
+    orbitals_Z = {}
+    
+    # This dictionary from orbital.py has a list of all the names for the allowed orbitals
+    configOrbits = {'s':[],'p':[],'d':[],'f':[]}
+    orbitalSet = orblib.projdict.keys()
+    for orbital in orbitalSet:
+        if orbital[0] == '0':
+            configOrbits['s'].append(orbital)
+        elif orbital[0] == '1':
+            configOrbits['p'].append(orbital)
+        elif orbital[0] == '2':
+            configOrbits['d'].append(orbital)
+        elif orbital[0] == '3':
+            configOrbits['f'].append(orbital)
+    
+    
+    for i,z in Z.items(): # in Z, key is index/species, value is Z
+        z_orbitals = []
+        
+        config = eclib.get_con(eclib.filename, z)
+        config = eclib.shield_split(config) # splits the configuration into nl components
+        
+        for state in config:
+            state_n = state[0]
+            
+            state_l = state[1]
+            
+            for orbital in configOrbits[state_l]: # for each orbital associated with the l value
+                z_orbitals.append('{}{}'.format(state_n,orbital))
+
+        orbitals_Z[i] = z_orbitals
+        
+    return orbitals_Z
+
+def create_basisObject(case,avec):
+    '''
+    Function to create a basis object from all the information in the struct file
+    Will currently run a non-spin calculation case
+    '''
+    # get the basis vectors, get the Z
+    atoms,Z,pos = get_atoms_from_struct(case,avec)
+    
+    z_orbitals = get_orbitals_from_atoms(Z)
+    
+    orbs = []
+    for a in atoms:
+        orbs.append(z_orbitals[a])
+    
+    spin = {'bool':False}
+    
+    basis = {
+        'atoms':atoms,
+        'Z':Z,
+        'orbs': orbs,
+        'pos': pos,
+        'spin': spin}
+                
+    return buildlib.gen_basis(basis),spin
+            
                 
             
     

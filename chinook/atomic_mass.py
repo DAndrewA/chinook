@@ -97,6 +97,7 @@ def get_num_from_el(el):
             line = l.split('\t')
             if line[1]==el:
                 Z = int(line[0])
+                break
     mass.close()
     if Z == -1:
         print('WARNING!! Invalid symbol passed. Returning with Z = 0')

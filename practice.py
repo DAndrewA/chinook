@@ -12,10 +12,16 @@ from chinook.ARPES_lib import experiment
 
 import chinook.fsplotter_lib as fs
 
+
+import chinook.atomic_mass as am
+
+
+
 case = 'data/FeTe_19nov21'
 
-a,c = 1,2
-avec = fs.get_PLV_from_struct(case)
+
+
+avec,a,b,c = fs.get_PLV_from_struct(case)
 
 
 
@@ -39,7 +45,7 @@ k_object = fs.create_kobject(case)
 
 
 #---------------------------- DEFINING STRUCTURE -----------------------------
-
+'''
 spin = {'bool':True,  #include spin-degree of freedom: double the orbital basis
 'soc':True,    #include atomic spin-orbit coupling in the calculation of the Hamiltonian
 'lam':{0:0.5}} #spin-orbit coupling strength in eV, require a value for each unique species in our basis
@@ -56,7 +62,8 @@ basis = {'atoms':[0,0], #two equivalent atoms in the basis, both labelled as spe
  'spin':spin} #spin arguments.
 
 basis_object = build_lib.gen_basis(basis)
-
+'''
+basis_object,spin = fs.create_basisObject(case, avec)
 
 
 #------------------------------------------------------------------------------
@@ -94,7 +101,7 @@ TB.solve_H()
 
 # need to figure out how to get correct bands format into TB data structure
 
-k_object,TB = fs.change_kobject_TB(case, k_object, TB)
+#k_object,TB = fs.change_kobject_TB(case, k_object, TB)
 
 TB.plotting(win_min=-14.0,win_max=8.0)
 
