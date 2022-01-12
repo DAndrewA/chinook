@@ -6,6 +6,36 @@ Created on Mon Jan 10 11:31:20 2022
 """
 import numpy as np
 
+# import other chinook files to help create correct data structures
+import chinook.klib as klib
+import chinook.TB_lib as TBlib
+
+
+# setting up fundamental constants
+uBohr = 5.29e-11
+uAngs = 1e-10
+
+
+def create_kobject(case):
+    '''
+    Function to create kobjects using the klib library.
+    '''
+    kpoints,kpoints_linear = get_kpoints_from_spaghettiene(case)
+    labels,kpoints_brk_line = get_labels_from_klist(case)
+    
+    kobj = klib.kpath(kpoints)#need to pass in points
+    
+    # updates the kobject now that we've instantiated it with our points
+    kobj.kcut = kpoints_linear
+    kobj.kcut_brk = kpoints_linear[kpoints_brk_line]
+    kobj.labels = labels
+    
+    return kobj
+    
+    
+    
+
+
 def get_kpoints_from_spaghettiene(case):
     '''
     Function to extract kpoints from case.spaghetti_ene file. Does this by
@@ -111,6 +141,12 @@ def get_labels_from_klist(case):
     f.close()
     print('get_labels_from_klist: Closing {}.klist_band'.format(case))
 
+    # adjust labels so they display like Latex labels
+    for i,lab in enumerate(labels):
+        if lab == 'GAMMA': # include any other special points
+            lab = '\\Gamma'
+        labels[i] = '${}$'.format(lab)
+    
     return labels,kpoints_brk_line
 
 
@@ -172,13 +208,27 @@ def create_basisObject(case):
     # lattice type appears to be the last element of the second line
     lattice_type = [s for s in fcont[1].split(' ') if s][-1]
     
+    
+    
+def get_PLV_from_struct(case):
+    '''
+    A function to extract the PLVs from the case.struct file.
+    The function assumes the PLVs are given on the 4th line of the file.
+    '''
+    # load in the struct file
+    f = open('{}.struct'.format(case),'r')
+    fcont = f.read().split('\n') # load the files contents as lines into fcont
+    f.close()
+    print('get_PLV_from_struct: Data loaded from {}.struct'.format(case))
+    
     # the third line contains info on the mode of calculation: relative or absolute coords, and lattice vectors in bohr or angstrom
     line = fcont[2]
     if 'MODE OF CALC' in line: # just checking correct line
         elem = [s for s in line.split(' ') if s] # split line and remove whitespace
-        calc_mode = elem[2].split('=')[1] # gets the calc mode, RELA or (ABS?)
+        # calc_mode not needed if we're just extracting the PLVS
+        #calc_mode = elem[2].split('=')[1] # gets the calc mode, RELA or (ABS?)
         unit = elem[3].split('=')[1] # gets the unit type, bohr or (ang?)
-    else: print('create_basisObject: {}.struct format is unrecognised'.format(case))
+    else: print('get_PLV_from_struct: {}.struct format is unrecognised'.format(case))
     
     # the fourth line gives the a,b,c,alpha,beta,gamma values
     # we can use these to obtain the lattice vectors
@@ -193,6 +243,7 @@ def create_basisObject(case):
     beta = float(elem[4]) * degToRad
     gamma = float(elem[5]) * degToRad
     
+    # all values are rounded to 8 deimal places, before being premultiplied by their magnitude
     vec_a = a * np.array([1,0,0])
     vec_b = b * np.array([np.round(np.cos(gamma),decimals=8),np.round(np.sin(gamma),decimals=8),0])
     
@@ -203,7 +254,12 @@ def create_basisObject(case):
     
     avec = np.array([vec_a,vec_b,vec_c])
     # need to perform unit change from bohr to angstrom in this.
-    print(avec)
+    if unit == 'bohr':
+        avec = avec / uBohr
+    avec = avec * uAngs
+    
+    return avec
+    
     
     
     

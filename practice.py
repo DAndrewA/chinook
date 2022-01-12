@@ -14,16 +14,15 @@ import chinook.fsplotter_lib as fs
 
 case = 'data/FeTe_19nov21'
 
-a,c = 6.911,12.314 #lattice parameters in angstroms
-avec = np.array([[a,0,0],[0,a,0],[0,0,c]])
+a,c = 1,2
+avec = fs.get_PLV_from_struct(case)
 
-fs.create_basisObject(case)
 
 
 #--------------------- DEFNING kpath ------------------------------------------
 
 
-
+'''
 # Define the k path. In this case, we'll go gamma -> Z -> corner -> gamma
 kpoints = np.array([[0,0,0],[0,0,0.5],[0.5,0.5,0.5],[0,0,0]])
 labels = np.array(['$\\Gamma$','$Z$','corner','$\\Gamma$'])
@@ -35,7 +34,8 @@ kdict = {'type':'F', #fractional coordinates for kpoints
 'labels':labels}
 
 k_object = build_lib.gen_K(kdict)
-
+'''
+k_object = fs.create_kobject(case)
 
 
 #---------------------------- DEFINING STRUCTURE -----------------------------
