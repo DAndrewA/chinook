@@ -279,8 +279,6 @@ def get_atoms_from_struct(case,avec):
                 elem = [e for e in line.split(' ') if e] # splits the line by spacing and removes whitespaces
                 atom_index = elem[0][1:-1] # removes the minus sign from the front and trailing colon
                 
-                print(elem)
-                
                 # need to extract the X, Y and Z values: (rounded to 8 dp)
                 # these values are relative to the lattice vectors
                 x = np.round(float(elem[1].split('=')[1]),decimals=8)
@@ -377,6 +375,117 @@ def create_basisObject(case,avec):
             
                 
             
+def load_qtl(case):
+    '''
+    Loads in the relative charge contributions from the bands from the case.qtl file
+    
+    After the header (which describes all the available orbitals), the file is
+    designated as follows:
+        
+        For n atoms, there are n+1 lines per point along the k-path, per band:
+            First point dictates energy
+            Second value dictates to which atom (n+1 => interstitial)
+            Then each value after corresponds to charge from orbital described in header.
+    '''
+    
+    f = open('{}.qtl'.format(case),'r')
+    
+    #----- MIGHT NEED TO FIND APPROACH TO LOAD IN BITS OF FILE AT A TIME, memory intensive
+    flines = [l for l in f.read().split('\n') if l] # reads contents of file and splits by new line
+    f.close()
+    
+    linei = 1 # skip first line as is just a description
+    line = flines[linei]
+    while 'JATOM' not in line:
+        linei += 1
+        line = flines[linei] 
+    
+    # now we've reached line with JATOM in it, we need to see what orbitals are available for each atom
+    n_atoms = 0
+    orbitals = {}
+    while 'JATOM' not in line:
+        n_atoms += 1
+        elements = line.split(',')
+        #atom_n = int([e for e in elements[0].split(' ') if e][1]) # ensures that the JATOM tag is used proeperly
+        atom_n = n_atoms # This should match the JATOM tag. If qtl file exists where thats not the case, use line above.
+        elements[0] = 'tot'
+        
+        # for each element in orbitals, stores array for string orbital names
+        orbitals[atom_n] = elements
+        
+        # cycles through all the lines where JATOM is present
+        linei += 1
+        line = flines[linei]
+        
+    # at the end, includes the final element in the orbitals dict, for interstitial charge
+    orbitals[0] = ['tot'] # uses 0 because easier later, see modulo calcs
+    
+    bands = {} # will store the energies of each band
+    QTL = {} # will store the partial charges of each band
+    bandnum = 0
+    index_in_band = 0
+    # -------- SEPERATE CASES FOR FIRST BAND AND SUBSEQUENT BANDS --------
+    # incase not at line where BAND 1 is written
+    while 'BAND' not in line:
+        linei += 1
+        line = flines[linei]
+    
+    bands[1] = [] # empty array for energies
+    QTL[1] = orbitals # the same size as orbitals, thus, for each atom, each orbital, we can create a new list
+    for atom in orbitals.keys():
+        for i,o in enumerate(QTL[bandnum][atom]):
+            QTL[bandnum][atom][i] = [] # rather than string for orbital name, replaced with array for QTL at energy for band
+   
+    
+    band_start_line = linei # this will be used to determine which array values are being appendeed to (atom)
+    linei += 1
+    line = flines[linei]
+    print('load_qtl: Loading band 1')
+    while 'BAND' not in line: # assuming more than one band in file, will go until band 2
+        elements = [e for e in line.split(' ') if e]
+        atom = (linei - band_start_line)%(n_atoms + 1) # 0 for interstitial
+        line_qtl = elements[2:]
+        for i,q in enumerate(line_qtl):
+            QTL[1][atom][i].append(float(q)) # append line's qtl to atoms orbital-qtl list
+            # QTL[band][atom][orbital][point along band] = (qtl of that atom's particluar orbital, at that point along band)
+        if not atom: # if we're on the line for interstitial atoms
+            bands[1].append(float(elements[0]))
+            
+        linei += 1
+        line = flines[linei]
+    
+    bands[1] = np.array(bands[1]) # sets the energy for each band as a nupy array, for later calculation reasons
+    #----- NOW FIRST BAND EXTRACTED, can get all future variables of correct size first
+    # should save on processing power
+    
+    while line: # keeps going until an empty line is reached
+        if 'BAND' in line:
+            # changes the current bandnum variable to that given in the line
+            bandnum = int([e for e in line.split(' ') if e][1])
+            index_in_band = 0
+            band_start_line = linei
+            print('load_qtl: Loading band {}'.format(bandnum))
+            bands[bandnum] = np.zeros(np.size(bands[1]))
+            QTL[bandnum] = QTL[1]
+            
+        else: # for each line in the band
+            elements = [e for e in line.split(' ') if e]
+            atom = (linei - band_start_line)%(n_atoms + 1) # 0 for interstitial
+            line_qtl = elements[2:]
+            for i,q in enumerate(line_qtl):
+                QTL[bandnum][atom][i][index_in_band] = float(q) # append line's qtl to atoms orbital-qtl list
+                # QTL[band][atom][orbital][point along band] = (qtl of that atom's particluar orbital, at that point along band)
+            if not atom: # if we're on the line for interstitial atoms
+                bands[bandnum][index_in_band] = float(elements[0])
+                index_in_band +=1
+            
+        linei += 1
+        line = flines[linei]
+        
+    print('load_qtl: All bands loaded.')
+    return QTL,bands
+            
+    
     
     
     

@@ -211,6 +211,13 @@ def on_site(basis,V,offset):
                 H = V['{:d}{:s}'.format(oi.atom,oi.label)]
             except KeyError:
                 H = 0.0
+        except ValueError as err:
+            print('V: {}'.format(V))
+            print('Trying {:d}{:d}{:d}')
+            print('oi.atom = {}'.format(oi.atom))
+            print('oi.n = {}'.format(oi.n))
+            print('oi.l = {}'.format(oi.l))
+            raise err
         Ho.append([oi.index,oi.index,0.0,0.0,0.0,float(H-offset)])
     return Ho
     
