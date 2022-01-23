@@ -17,6 +17,7 @@ import chinook.build_lib as buildlib
 # setting up fundamental constants
 uBohr = 5.29e-11
 uAngs = 1e-10
+Ry_to_eV = 13.606 # 1Ry = 13.606eV
 
 
 def create_kobject(case):
@@ -398,12 +399,12 @@ def load_qtl(case):
     line = flines[linei]
     while 'JATOM' not in line:
         linei += 1
-        line = flines[linei] 
+        line = flines[linei]
     
     # now we've reached line with JATOM in it, we need to see what orbitals are available for each atom
     n_atoms = 0
     orbitals = {}
-    while 'JATOM' not in line:
+    while 'JATOM' in line:
         n_atoms += 1
         elements = line.split(',')
         #atom_n = int([e for e in elements[0].split(' ') if e][1]) # ensures that the JATOM tag is used proeperly
@@ -412,7 +413,11 @@ def load_qtl(case):
         
         # for each element in orbitals, stores array for string orbital names
         orbitals[atom_n] = elements
-        
+        '''# debug print statements
+        print('load_qtl: atom_n = {}'.format(atom_n))
+        print('load_qtl: atom_n orbitals = {}'.format(elements))
+        print('load_qtl: orbitals[atom_n] = {}'.format(orbitals[atom_n]))
+        '''
         # cycles through all the lines where JATOM is present
         linei += 1
         line = flines[linei]
@@ -420,9 +425,11 @@ def load_qtl(case):
     # at the end, includes the final element in the orbitals dict, for interstitial charge
     orbitals[0] = ['tot'] # uses 0 because easier later, see modulo calcs
     
+    #print('load_qtl: orbitals = {}'.format(orbitals))
+    
     bands = {} # will store the energies of each band
     QTL = {} # will store the partial charges of each band
-    bandnum = 0
+    bandnum = 1
     index_in_band = 0
     # -------- SEPERATE CASES FOR FIRST BAND AND SUBSEQUENT BANDS --------
     # incase not at line where BAND 1 is written
@@ -433,6 +440,8 @@ def load_qtl(case):
     bands[1] = [] # empty array for energies
     QTL[1] = orbitals # the same size as orbitals, thus, for each atom, each orbital, we can create a new list
     for atom in orbitals.keys():
+        print('load_qtl: first band: atom = {}'.format(atom))
+        print('load_qtl: first band: QTL[{}][{}] = {}'.format(bandnum,atom,QTL[bandnum][atom]))
         for i,o in enumerate(QTL[bandnum][atom]):
             QTL[bandnum][atom][i] = [] # rather than string for orbital name, replaced with array for QTL at energy for band
    
@@ -458,7 +467,11 @@ def load_qtl(case):
     #----- NOW FIRST BAND EXTRACTED, can get all future variables of correct size first
     # should save on processing power
     
+    #flines = flines[linei:] # take the final part of the final, without the first band and header
+    #linei = 0
+    
     while line: # keeps going until an empty line is reached
+    #for iline,line in enumerate(flines): 
         if 'BAND' in line:
             # changes the current bandnum variable to that given in the line
             bandnum = int([e for e in line.split(' ') if e][1])
@@ -483,6 +496,10 @@ def load_qtl(case):
         line = flines[linei]
         
     print('load_qtl: All bands loaded.')
+    
+    for b in bands.keys():
+        bands[b] = bands[b] * Ry_to_eV # as bands[j] should be np.array, can do simple multiplication
+    
     return QTL,bands
             
     
