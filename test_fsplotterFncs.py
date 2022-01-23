@@ -17,7 +17,7 @@ import chinook.fsplotter_lib as fs
 
 import chinook.atomic_mass as am
 
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 
 
@@ -28,16 +28,26 @@ avec,a,b,c = fs.get_PLV_from_struct(case)
 k_object = fs.create_kobject(case)
 
 # load in QTL, comment out if not nessecary as very memory intensive
-QTL,bands = fs.load_qtl(case)
+QTL,bands,E_F = fs.load_qtl(case)
 
-
+'''
 # FIRST TEST:
     # are the lengths of the kpath and bands data the same?
 if len(k_object.kcut) == len(bands[1]):
-    print('Test 1: lengths are the same!')
+    print('Test 1: kpath and band have same number of points.')
+'''
 
 
-#fig = plt.figure()
+# SECOND TEST:
+    # can we plot the bands on a figure, against k-path
+
+ax = plt.axes()
+for b in bands.keys():
+    ax.plot(k_object.kcut,bands[b])
+
+ax.set_ylim([E_F - 5, E_F+5])
+ax.axhline(E_F,linestyle='--')
+plt.show()
 
 
 # plot bands from bands and k_object data:

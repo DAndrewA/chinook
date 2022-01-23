@@ -397,7 +397,11 @@ def load_qtl(case):
     
     linei = 1 # skip first line as is just a description
     line = flines[linei]
+    
+    E_F = 0
     while 'JATOM' not in line:
+        if 'FERMI ENERGY' in line:
+            E_F = float( [e for e in line.split('=') if e][2] )
         linei += 1
         line = flines[linei]
     
@@ -467,40 +471,40 @@ def load_qtl(case):
     #----- NOW FIRST BAND EXTRACTED, can get all future variables of correct size first
     # should save on processing power
     
-    #flines = flines[linei:] # take the final part of the final, without the first band and header
-    #linei = 0
-    
-    while line: # keeps going until an empty line is reached
-    #for iline,line in enumerate(flines): 
-        if 'BAND' in line:
-            # changes the current bandnum variable to that given in the line
-            bandnum = int([e for e in line.split(' ') if e][1])
-            index_in_band = 0
-            band_start_line = linei
-            print('load_qtl: Loading band {}'.format(bandnum))
-            bands[bandnum] = np.zeros(np.size(bands[1]))
-            QTL[bandnum] = QTL[1]
-            
-        else: # for each line in the band
-            elements = [e for e in line.split(' ') if e]
-            atom = (linei - band_start_line)%(n_atoms + 1) # 0 for interstitial
-            line_qtl = elements[2:]
-            for i,q in enumerate(line_qtl):
-                QTL[bandnum][atom][i][index_in_band] = float(q) # append line's qtl to atoms orbital-qtl list
-                # QTL[band][atom][orbital][point along band] = (qtl of that atom's particluar orbital, at that point along band)
-            if not atom: # if we're on the line for interstitial atoms
-                bands[bandnum][index_in_band] = float(elements[0])
-                index_in_band +=1
-            
-        linei += 1
-        line = flines[linei]
-        
+    try:
+        while line: # keeps going until an empty line is reached 
+            if 'BAND' in line:
+                # changes the current bandnum variable to that given in the line
+                bandnum = int([e for e in line.split(' ') if e][1])
+                index_in_band = 0
+                band_start_line = linei
+                print('load_qtl: Loading band {}'.format(bandnum))
+                bands[bandnum] = np.zeros(np.size(bands[1]))
+                QTL[bandnum] = QTL[1]
+                
+            else: # for each line in the band
+                elements = [e for e in line.split(' ') if e]
+                atom = (linei - band_start_line)%(n_atoms + 1) # 0 for interstitial
+                line_qtl = elements[2:]
+                for i,q in enumerate(line_qtl):
+                    QTL[bandnum][atom][i][index_in_band] = float(q) # append line's qtl to atoms orbital-qtl list
+                    # QTL[band][atom][orbital][point along band] = (qtl of that atom's particluar orbital, at that point along band)
+                if not atom: # if we're on the line for interstitial atoms
+                    bands[bandnum][index_in_band] = float(elements[0])
+                    index_in_band +=1
+                
+            linei += 1
+            line = flines[linei]
+    except:
+        print('load_qtl: exception for linei={}'.format(linei))
     print('load_qtl: All bands loaded.')
     
     for b in bands.keys():
         bands[b] = bands[b] * Ry_to_eV # as bands[j] should be np.array, can do simple multiplication
     
-    return QTL,bands
+    E_F = E_F * Ry_to_eV
+    
+    return QTL,bands,E_F
             
     
     
