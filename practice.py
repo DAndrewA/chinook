@@ -10,7 +10,7 @@ import chinook.build_lib as build_lib
 import chinook.operator_library as operator_library
 from chinook.ARPES_lib import experiment
 
-import chinook.fsplotter_lib as fs
+import chinook.wien2k_lib as wien
 
 
 import chinook.atomic_mass as am
@@ -21,7 +21,7 @@ case = 'data/FeTe_19nov21'
 
 
 
-avec,a,b,c = fs.get_PLV_from_struct(case)
+avec,a,b,c = wien.get_PLV_from_struct(case)
 
 
 
@@ -41,7 +41,7 @@ kdict = {'type':'F', #fractional coordinates for kpoints
 
 k_object = build_lib.gen_K(kdict)
 '''
-k_object = fs.create_kobject(case)
+k_object = wien.create_kobject(case)
 
 
 #---------------------------- DEFINING STRUCTURE -----------------------------
@@ -63,7 +63,7 @@ basis = {'atoms':[0,0], #two equivalent atoms in the basis, both labelled as spe
 
 basis_object = build_lib.gen_basis(basis)
 '''
-basis_object,spin = fs.create_basisObject(case, avec)
+basis_object,spin = wien.create_basisObject(case, avec)
 
 
 #------------------------------------------------------------------------------
