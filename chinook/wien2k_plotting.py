@@ -61,7 +61,7 @@ def plot_bandCharacter(k_obj,bands,QTL,orb,E_F=None,ax=None,w= lambda x: x):
 
 
 
-def plot_dominant_bandCharacter(k_obj,bands,QTL,proj,E_F=None,ax=None,w = lambda x: x):
+def plot_dominant_bandCharacter(k_obj,bands,QTL,proj,E_F=None,ax=None,w = lambda x: 1):
     '''
     Function to plot the dominant band character for a kpath
     
@@ -98,8 +98,12 @@ def plot_dominant_bandCharacter(k_obj,bands,QTL,proj,E_F=None,ax=None,w = lambda
             kpos = k_obj.kcut[index_dominant]
             E = bands[b][index_dominant]
             Q = QTL[b][atom][orb][index_dominant]
-            ax.scatter(kpos,E,w(Q),c=colours[i])
+            ax.scatter(kpos,E,w(Q),color=colours[i])
             
+    if E_F: # if a fermi energy is supplied, centre the plot on it
+        ax.set_ylim([E_F - 6, E_F+4])
+        ax.axhline(E_F,linestyle='--')
+    
     #create the custom legend for each of the orbitals:
     legend_elements = []
     for i,p in enumerate(proj):

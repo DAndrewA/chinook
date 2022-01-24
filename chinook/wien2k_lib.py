@@ -473,6 +473,11 @@ def load_qtl(case):
         line = flines[linei]
     
     bands[1] = np.array(bands[1]) # sets the energy for each band as a nupy array, for later calculation reasons
+    
+    #for each list in QTL, turns it into a numpy array:
+    for atom in QTL[1].keys():
+        QTL[1][atom] = np.array(QTL[1][atom])
+    
     #----- NOW FIRST BAND EXTRACTED, can get all future variables of correct size first
     # should save on processing power
     

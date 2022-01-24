@@ -87,5 +87,6 @@ wienPlot.plot_bandCharacter(k_object, bands, QTL, orb,w=lambda x: np.power(x,0.2
 
 #SIXTH TEST:
     # using the wien2k_plotting plot_dominant_bandCharacter() function
-proj = [[1,6,'$D_{z^2}$'],[1,7,'$D_{xy}$']]#,[1,8,'$D_{x^2 y^2}$'],[1,9,'D_{xz}+D_{yz}']]
-wienPlot.plot_dominant_bandCharacter(k_object, bands, QTL, proj,E_F=E_F)
+proj = [[1,6,'$D_{z^2}$'],[1,7,'$D_{xy}$'],[1,8,'$D_{x^2 y^2}$']]#,[1,9,'$D_{xz}+D_{yz}$']]
+w = lambda x: 100*np.power(x,0.3)/np.max(x)
+wienPlot.plot_dominant_bandCharacter(k_object, bands, QTL, proj,E_F=E_F)#,w=w)
