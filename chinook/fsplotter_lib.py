@@ -504,7 +504,7 @@ def load_qtl(case):
     
     E_F = E_F * Ry_to_eV
     
-    return QTL,bands,E_F
+    return QTL,bands,orbitals,E_F
             
     
     
