@@ -196,12 +196,17 @@ def get_PLV_from_struct(case):
     
     # the third line contains info on the mode of calculation: relative or absolute coords, and lattice vectors in bohr or angstrom
     line = fcont[2]
-    if 'MODE OF CALC' in line: # just checking correct line
+    
+    try:
         elem = [s for s in line.split(' ') if s] # split line and remove whitespace
         # calc_mode not needed if we're just extracting the PLVS
         #calc_mode = elem[2].split('=')[1] # gets the calc mode, RELA or (ABS?)
         unit = elem[3].split('=')[1] # gets the unit type, bohr or (ang?)
-    else: print('get_PLV_from_struct: {}.struct format is unrecognised'.format(case))
+    except: # by default, if file structure is different, go for defaults
+        print('get_PLV_from_struct: except triggered, setting default units')
+        unit = 'bohr'
+        calc_mode = 'RELA'
+    print(unit)
     
     # the fourth line gives the a,b,c,alpha,beta,gamma values
     # we can use these to obtain the lattice vectors

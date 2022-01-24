@@ -17,7 +17,7 @@ import chinook.atomic_mass as am
 
 
 
-case = 'data/FeTe_19nov21'
+case = 'data/FeTe_19nov21/FeTe_19nov21'
 
 
 
