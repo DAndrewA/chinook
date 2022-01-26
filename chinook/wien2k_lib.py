@@ -381,7 +381,7 @@ def create_basisObject(case,avec):
             
                 
             
-def load_qtl(case):
+def load_qtl(case,verbose=0):
     '''
     Loads in the relative charge contributions from the bands from the case.qtl file
     
@@ -449,8 +449,8 @@ def load_qtl(case):
     bands[1] = [] # empty array for energies
     QTL[1] = orbitals # the same size as orbitals, thus, for each atom, each orbital, we can create a new list
     for atom in orbitals.keys():
-        print('load_qtl: first band: atom = {}'.format(atom))
-        print('load_qtl: first band: QTL[{}][{}] = {}'.format(bandnum,atom,QTL[bandnum][atom]))
+        if verbose: print('load_qtl: first band: atom = {}'.format(atom))
+        if verbose: print('load_qtl: first band: QTL[{}][{}] = {}'.format(bandnum,atom,QTL[bandnum][atom]))
         for i,o in enumerate(QTL[bandnum][atom]):
             QTL[bandnum][atom][i] = [] # rather than string for orbital name, replaced with array for QTL at energy for band
    
@@ -458,7 +458,7 @@ def load_qtl(case):
     band_start_line = linei # this will be used to determine which array values are being appendeed to (atom)
     linei += 1
     line = flines[linei]
-    print('load_qtl: Loading band 1')
+    if verbose: print('load_qtl: Loading band 1')
     while 'BAND' not in line: # assuming more than one band in file, will go until band 2
         elements = [e for e in line.split(' ') if e]
         atom = (linei - band_start_line)%(n_atoms + 1) # 0 for interstitial
@@ -488,7 +488,7 @@ def load_qtl(case):
                 bandnum = int([e for e in line.split(' ') if e][1])
                 index_in_band = 0
                 band_start_line = linei
-                print('load_qtl: Loading band {}'.format(bandnum))
+                if verbose: print('load_qtl: Loading band {}'.format(bandnum))
                 bands[bandnum] = np.zeros(np.size(bands[1]))
                 QTL[bandnum] = QTL[1]
                 
