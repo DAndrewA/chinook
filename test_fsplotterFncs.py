@@ -262,12 +262,13 @@ proj = [[1,6,'$D_{z^2}$'],[1,7,'$D_{xy}$'],[1,8,'$D_{x^2 y^2}$']]#,[1,9,'$D_{xz}
 wienPlot.plot_adjacent_dominant_bandCharacter('$\Gamma$', '$M$', k_object, bands, QTL, proj,E_F=E_F)
 '''
 
-'''
+
 # ELEVENTH TEST:
     # going to do a 4x4 subplot grid, each subplot containing the plot around a centre in a given direction
 
 proj = [[1,6,'$D_{z^2}$'],[1,7,'$D_{xy}$'],[1,8,'$D_{x^2 y^2}$']]#,[1,9,'$D_{xz}+D_{yz}$']]
-colours = dispy.get_colors(len(proj))
+# colours extracted from other paper
+colours =  [(0.930,0.113,0.137),(0.23,0.336,0.645),(0.227,0.707,0.289)] #dispy.get_colors(len(proj))
 
 # extracts unique labels
 t = k_object.labels
@@ -294,4 +295,3 @@ for x,centre in enumerate(labels):
                 legend_elements.append(elem)
             ax.legend(handles=legend_elements,loc='center')
 plt.show()
-'''
