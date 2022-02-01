@@ -235,7 +235,13 @@ def get_PLV_from_struct(case):
     # need to perform unit change from bohr to angstrom in this.
     if unit == 'bohr':
         avec = avec / uBohr
+        a = a / uBohr
+        b = b / uBohr
+        c = c / uBohr
     avec = avec * uAngs
+    a = a * uAngs
+    b = b * uAngs
+    c = c * uAngs
     
     return avec,a,b,c
     
@@ -270,8 +276,9 @@ def get_atoms_from_struct(case,avec):
     line = fcont[2] # extract the third line, to determine the calculation type for the atomic positions
     if 'MODE OF CALC' in line:
         # If we have the correct line, we take the mode of calculation, rela or abs
-        calc_mode = [e for e in line.split(' ') if e][2].split('=')[1].lower()
-    
+        calc_mode = [e for e in line.split(' ') if e][2].split('=')[-1].lower()
+    else:
+        calc_mode = 'rela'
     Zdict = get_z_from_file()
     
     atoms = []
@@ -309,8 +316,10 @@ def get_atoms_from_struct(case,avec):
             elem = [e for e in line.split(' ') if e]
             
             atom_type = elem[0] # extracts the string for the atom type
-            Z[atom_index] = Zdict[atom_type] # get_Z is placeholder for getting Z from atom string.
-            
+            try:
+                Z[atom_index] = Zdict[atom_type] # get_Z is placeholder for getting Z from atom string.
+            except:
+                Z[atom_index] = Zdict[atom_type[:-1]] # takes the trailing number from the atom_type string
             i = i+j
             
     return atoms,Z,pos
@@ -355,7 +364,7 @@ def get_orbitals_from_atoms(Z):
         
     return orbitals_Z
 
-def create_basisObject(case,avec):
+def create_basisObject(case,avec,orbs=None):
     '''
     Function to create a basis object from all the information in the struct file
     Will currently run a non-spin calculation case
@@ -363,11 +372,13 @@ def create_basisObject(case,avec):
     # get the basis vectors, get the Z
     atoms,Z,pos = get_atoms_from_struct(case,avec)
     
+    
     z_orbitals = get_orbitals_from_atoms(Z)
     
-    orbs = []
-    for a in atoms:
-        orbs.append(z_orbitals[a])
+    if not orbs:
+        orbs = []
+        for a in atoms:
+            orbs.append(z_orbitals[a])
     
     spin = {'bool':False}
     

@@ -205,7 +205,8 @@ def on_site(basis,V,offset):
     Ho = []
     for oi in basis:
         try:
-            H = V['{:d}{:d}{:d}'.format(oi.atom,oi.n,oi.l)]
+            #H = V['{:d}{:d}{:d}'.format(oi.atom,oi.n,oi.l)]
+            H = V['{}{}{}'.format(oi.atom,oi.n,oi.l)]
         except KeyError:
             try:
                 H = V['{:d}{:s}'.format(oi.atom,oi.label)]
@@ -217,6 +218,7 @@ def on_site(basis,V,offset):
             print('oi.atom = {}'.format(oi.atom))
             print('oi.n = {}'.format(oi.n))
             print('oi.l = {}'.format(oi.l))
+            print('V[\'{}{}{}\'] = {}'.format(oi.atom,oi.n,oi.l,V['{}{}{}'.format(oi.atom,oi.n,oi.l)]))
             raise err
         Ho.append([oi.index,oi.index,0.0,0.0,0.0,float(H-offset)])
     return Ho

@@ -69,7 +69,7 @@ basis_object,spin = wien.create_basisObject(case, avec)
 #------------------------------------------------------------------------------
 
 
-# DEFININF THE TB HAMILTONIAN, THIS IS THE BIT WE WANT TO SKIP
+# DEFINING THE TB HAMILTONIAN, THIS IS THE BIT WE WANT TO SKIP
 Ep = 0.7
 Vpps = 0.25
 Vppp = -1.0

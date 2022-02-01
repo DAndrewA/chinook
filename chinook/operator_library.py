@@ -67,8 +67,8 @@ def colourmaps():
     map_obj = LinearSegmentedColormap.from_list(name='RdBu_alpha',colors=col_arr)
     plt.register_cmap(cmap=map_obj)
 
-colourmaps()
-
+#colourmaps()
+print('operator_library: line 70, colourmaps() disabled to stop print statements')
 
 
 def LSmat(TB,axis=None):
