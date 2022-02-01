@@ -17,7 +17,7 @@ import chinook.wien2k_lib as wien
 
 
 
-def plot_bands(k_obj,bands,E_F=None,ax=None):
+def plot_bands(k_obj,bands,E_F=0,ax=None,window=[-6,4]):
     '''
     Will plot all the bands for the bands object on a single axis
     '''
@@ -28,12 +28,11 @@ def plot_bands(k_obj,bands,E_F=None,ax=None):
     for band in bands.keys():
         ax.plot(k_obj.kcut,bands[band])
         
-    if E_F: # if a fermi energy is supplied, centre the plot on it
-        ax.set_ylim([E_F - 6, E_F+4])
-        ax.axhline(E_F,linestyle='--')
+    ax.set_ylim([E_F + window[0], E_F + window[1]])
+    ax.axhline(E_F,linestyle='--')
     
     ax = label_axis(ax, k_obj)
-    plt.show()
+    #plt.show()
     return
 
 
@@ -58,7 +57,7 @@ def plot_bandCharacter(k_obj,bands,QTL,orb,E_F=None,ax=None,w= lambda x: x,windo
     ax.axhline(E_F,linestyle='--')
     
     ax = label_axis(ax, k_obj)
-    plt.show()
+    #plt.show()
     return
         
     

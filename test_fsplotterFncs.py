@@ -33,7 +33,7 @@ avec,a,b,c = wien.get_PLV_from_struct(case)
 k_object = wien.create_kobject(case)
 
 # load in QTL, comment out if not nessecary as very memory intensive
-QTL,bands,orbitals,E_F = wien.load_qtl(case)
+QTL,bands,orbitals,E_F = wien.load_qtl(case,verbose=0)
 
 '''
 # FIRST TEST:
@@ -93,7 +93,8 @@ wienPlot.plot_bandCharacter(k_object, bands, QTL, orb,w=lambda x: np.power(x,0.2
     # using the wien2k_plotting plot_dominant_bandCharacter() function
 #bands[59] = 2*(bands[59]-E_F) + E_F   
 
-proj = [[1,6,'$D_{z^2}$'],[1,7,'$D_{xy}$'],[1,8,'$D_{x^2 y^2}$']]#,[1,9,'$D_{xz}+D_{yz}$']]
+#proj = [[1,6,'$D_{z^2}$'],[1,7,'$D_{xy}$'],[1,8,'$D_{x^2 y^2}$']]#,[1,9,'$D_{xz}+D_{yz}$']]
+proj=[ [1,7,'$d_{3z^2 - r^2}$'] , [1,8,'$d_{x^2 - y^2}$'] , [1,9,'$d_{xy}$'] ]#, [1,10,'$d_{xz}$'] , [1,11,'$d_{yz}$']]
 w = lambda x: 100*np.power(x,0.3)/np.max(x)
 wienPlot.plot_dominant_bandCharacter(k_object, bands, QTL, proj,E_F=E_F)#,w=w)
 '''
@@ -262,13 +263,13 @@ proj = [[1,6,'$D_{z^2}$'],[1,7,'$D_{xy}$'],[1,8,'$D_{x^2 y^2}$']]#,[1,9,'$D_{xz}
 wienPlot.plot_adjacent_dominant_bandCharacter('$\Gamma$', '$M$', k_object, bands, QTL, proj,E_F=E_F)
 '''
 
-
+'''
 # ELEVENTH TEST:
     # going to do a 4x4 subplot grid, each subplot containing the plot around a centre in a given direction
 
-proj = [[1,6,'$D_{z^2}$'],[1,7,'$D_{xy}$'],[1,8,'$D_{x^2 y^2}$']]#,[1,9,'$D_{xz}+D_{yz}$']]
+proj=[ [1,7,'$d_{3z^2 - r^2}$'] , [1,8,'$d_{x^2 - y^2}$'] , [1,9,'$d_{xy}$'] ]#, [1,10,'$d_{xz}$'] , [1,11,'$d_{yz}$']]
 # colours extracted from other paper
-colours =  [(0.930,0.113,0.137),(0.23,0.336,0.645),(0.227,0.707,0.289)] #dispy.get_colors(len(proj))
+colours =  [(0.930,0.113,0.137),(0.227,0.707,0.289),(0.23,0.336,0.645)] #dispy.get_colors(len(proj))
 
 # extracts unique labels
 t = k_object.labels
@@ -278,13 +279,13 @@ for p in t:
     if p not in labels:
         labels.append(p)
 plt.ion()
-f = plt.figure(0,(13,13),600)
+f = plt.figure(0,(14,21),600)
 for x,centre in enumerate(labels):
     for y,direction in enumerate(labels):
         print('(x,y) = ({},{})'.format(x,y))
         print('centre = {} ; direction = {}'.format(centre,direction))
         print('k_object.labels = {}'.format(k_object.labels))
-        ax = f.add_subplot(len(labels),len(labels),( len(labels)*x +y +1 ))
+        ax = f.add_subplot(len(labels)+3,len(labels),( len(labels)*x +y +1 ))
         ax = wienPlot.plot_adjacent_dominant_bandCharacter(centre, direction, k_object, bands, QTL, proj,E_F=E_F,ax=ax,colours=colours,suppressLegend=True)
         
         if x == 0 and y == 0: # create legend in upper right corner
@@ -294,4 +295,57 @@ for x,centre in enumerate(labels):
                 elem = Line2D([0],[0],color=colours[i],lw=5,label=p[2])
                 legend_elements.append(elem)
             ax.legend(handles=legend_elements,loc='center')
+            
+axBig = f.add_subplot(len(labels)+3,1, (len(labels) + 1,len(labels)+3))
+
+axBig = wienPlot.plot_dominant_bandCharacter(k_object, bands, QTL, proj,E_F=E_F,colours=colours,ax=axBig,suppressLegend=True)
+
 plt.show()
+'''
+
+
+'''
+# TWELFTH TEST:
+    # Aim here is to plot the QTL of different bands and see if we can observe dicontinuities where they cross
+
+proj=[ [1,7,'$d_{3z^2 - r^2}$'] , [1,8,'$d_{x^2 - y^2}$'] , [1,9,'$d_{xy}$'] ]#, [1,10,'$d_{xz}$'] , [1,11,'$d_{yz}$']]
+bands_subset = [28,29,30,31,32] #bands that cross the fermi level
+f = plt.figure(0,(12,16),300)
+
+# start with forst subplot being band structure
+ax = f.add_subplot(len(proj)+1,1,1)
+wienPlot.plot_bands(k_object, bands,E_F=E_F,ax=ax,window=[-2,0.5])
+
+for i,p in enumerate(proj):
+    ax = f.add_subplot(len(proj)+1,1,2+i)
+    ax.set_prop_cycle(None)
+    for b in bands_subset:
+        ax.plot(k_object.kcut,QTL[b][p[0]][p[1]])
+    ax.set_ylabel(p[2])
+    #ax.set_ylim(0,1)
+    print('p = {}'.format(p))
+
+plt.show()
+
+
+proj=[ [1,7,'$d_{3z^2 - r^2}$'] , [1,8,'$d_{x^2 - y^2}$'] , [1,9,'$d_{xy}$'] ]#, [1,10,'$d_{xz}$'] , [1,11,'$d_{yz}$']]
+bands_subset = [28,29,30,31,32] #bands that cross the fermi level
+
+f = plt.figure(0,(16,20),300)
+ax = f.add_subplot(len(proj)+2,1,(1,2))
+for b in bands_subset:
+    bands[b] = bands[b]-E_F
+    ax.plot(k_object.kcut,bands[b])
+    ax.set_ylim(-2,0.5)
+
+for i,p in enumerate(proj):
+    for j,b in enumerate(bands_subset):
+        ax = f.add_subplot(len(proj)+2,len(bands_subset),(2+i)*len(bands_subset) + j + 1)
+        ax.plot(k_object.kcut,QTL[b][p[0]][p[1]])
+        if j == 0:
+            ax.set_ylabel(p[2])
+        if p == proj[-1]:
+            ax.set_xlabel('band {}'.format(b))
+            
+plt.show()
+'''

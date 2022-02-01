@@ -5,6 +5,7 @@ Created on Mon Jan 10 11:31:20 2022
 @author: Andrew
 """
 import numpy as np
+import copy
 
 # import other chinook files to help create correct data structures
 import chinook.klib as klib
@@ -434,7 +435,10 @@ def load_qtl(case,verbose=0):
     # at the end, includes the final element in the orbitals dict, for interstitial charge
     orbitals[0] = ['tot'] # uses 0 because easier later, see modulo calcs
     
-    #print('load_qtl: orbitals = {}'.format(orbitals))
+    if verbose:
+        print('load_qtl: orbital strings loaded into orbitals object:')
+        for k in orbitals.keys():
+            print('key={} ; orbitals[{}]={}'.format(k,k,orbitals[k]))
     
     bands = {} # will store the energies of each band
     QTL = {} # will store the partial charges of each band
@@ -446,14 +450,20 @@ def load_qtl(case,verbose=0):
         linei += 1
         line = flines[linei]
     
+    # USING the copy module as was having problems with changes to one variable affecting the other
     bands[1] = [] # empty array for energies
-    QTL[1] = orbitals # the same size as orbitals, thus, for each atom, each orbital, we can create a new list
+    QTL[1] = copy.deepcopy(orbitals) # the same size as orbitals, thus, for each atom, each orbital, we can create a new list
     for atom in orbitals.keys():
         if verbose: print('load_qtl: first band: atom = {}'.format(atom))
         if verbose: print('load_qtl: first band: QTL[{}][{}] = {}'.format(bandnum,atom,QTL[bandnum][atom]))
         for i,o in enumerate(QTL[bandnum][atom]):
             QTL[bandnum][atom][i] = [] # rather than string for orbital name, replaced with array for QTL at energy for band
-   
+    
+    if verbose:
+        print('load_qtl: created QTL[1] as copy of orbitals:')
+        for k in orbitals.keys():
+            print('orbitals[{}] = {}'.format(k,orbitals[k]))
+            print('QTL[1][{}] = {}'.format(k,QTL[1][k]))
     
     band_start_line = linei # this will be used to determine which array values are being appendeed to (atom)
     linei += 1
@@ -467,7 +477,7 @@ def load_qtl(case,verbose=0):
             QTL[1][atom][i].append(float(q)) # append line's qtl to atoms orbital-qtl list
             # QTL[band][atom][orbital][point along band] = (qtl of that atom's particluar orbital, at that point along band)
         if not atom: # if we're on the line for interstitial atoms
-            bands[1].append(float(elements[0]))
+            bands[1].append(float(elements[0])) # append the energy given at the start of the line to the band
             
         linei += 1
         line = flines[linei]
@@ -478,6 +488,10 @@ def load_qtl(case,verbose=0):
     for atom in QTL[1].keys():
         QTL[1][atom] = np.array(QTL[1][atom])
     
+    if verbose:
+        print('load_qtl: first band loaded, testing variation in band')
+        print(QTL[1][1][2][1785])
+        print(QTL[1][1][2][0])
     #----- NOW FIRST BAND EXTRACTED, can get all future variables of correct size first
     # should save on processing power
     
@@ -490,7 +504,7 @@ def load_qtl(case,verbose=0):
                 band_start_line = linei
                 if verbose: print('load_qtl: Loading band {}'.format(bandnum))
                 bands[bandnum] = np.zeros(np.size(bands[1]))
-                QTL[bandnum] = QTL[1]
+                QTL[bandnum] = copy.deepcopy(QTL[1])
                 
             else: # for each line in the band
                 elements = [e for e in line.split(' ') if e]
@@ -515,8 +529,5 @@ def load_qtl(case,verbose=0):
     E_F = E_F * Ry_to_eV
     
     return QTL,bands,orbitals,E_F
-            
-    
-    
     
     
