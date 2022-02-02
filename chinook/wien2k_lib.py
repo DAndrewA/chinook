@@ -234,14 +234,14 @@ def get_PLV_from_struct(case):
     avec = np.array([vec_a,vec_b,vec_c])
     # need to perform unit change from bohr to angstrom in this.
     if unit == 'bohr':
-        avec = avec / uBohr
-        a = a / uBohr
-        b = b / uBohr
-        c = c / uBohr
-    avec = avec * uAngs
-    a = a * uAngs
-    b = b * uAngs
-    c = c * uAngs
+        avec = avec * uBohr
+        a = a * uBohr
+        b = b * uBohr
+        c = c * uBohr
+    avec = avec / uAngs
+    a = a / uAngs
+    b = b / uAngs
+    c = c / uAngs
     
     return avec,a,b,c
     

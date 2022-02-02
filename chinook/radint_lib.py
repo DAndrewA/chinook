@@ -115,10 +115,10 @@ def radint_dict_to_arr(Bdict,basis):
     lchan = []
     pointers = []
     for b in basis:
-        orbstr = '{:d}-{:d}-{:d}'.format(b.atom,b.n,b.l)
+        orbstr = '{}-{}-{}'.format(b.atom,b.n,b.l)
         if orbstr not in lchan:
             lchan.append(orbstr)
-            Blist.append([Bdict[orbstr+'-{:d}'.format(b.l-1)],Bdict[orbstr+'-{:d}'.format(b.l+1)]])
+            Blist.append([Bdict[orbstr+'-{}'.format(b.l-1)],Bdict[orbstr+'-{}'.format(b.l+1)]])
         pointers.append(lchan.index(orbstr))
     return np.array(Blist),np.array(pointers)
         
@@ -233,7 +233,7 @@ def define_radial_wavefunctions(rad_dict,basis):
         for o in basis:
             lp = np.array([o.l-1,o.l+1])
             for lpi in lp:
-                ostr = '{:d}-{:d}-{:d}-{:d}'.format(o.atom,o.n,o.l,lpi)
+                ostr = '{}-{}-{}-{}'.format(o.atom,o.n,o.l,lpi)
                 if lpi>=0:
                     orbital_funcs[ostr] = gen_const(rad_dict['rad_args'][ostr])
                 else:
@@ -263,7 +263,7 @@ def gen_orb_labels(basis):
     '''
     orbitals = {}
     for o in basis:
-        o_str = '{:d}-{:d}-{:d}'.format(o.atom,o.n,o.l)
+        o_str = '{}-{}-{}'.format(o.atom,o.n,o.l)
         if o_str not in orbitals.keys():
             orbitals[o_str] = [o.Z,o.label]
     return orbitals

@@ -268,7 +268,7 @@ class TB_model:
         print(' Index | Atom | Label | Spin |     Position     ')
         print('================================================')
         for o in self.basis:
-            print('  {:3d}  |  {:2d}  |{:7}|{:6}| {:0.03f},{:0.03f},{:0.03f}'.format(o.index,o.atom,o.label,0.5*o.spin,*o.pos))
+            print('  {:3}  |  {:2}  |{:7}|{:6}| {:0.03},{:0.03},{:0.03}'.format(o.index,o.atom,o.label,0.5*o.spin,*o.pos))
         
             
     

@@ -34,10 +34,11 @@ case = 'data/FeSe_25jan22/FeSe_25jan22'
 
 
 avec,a,b,c = wien.get_PLV_from_struct(case)
+print('a,b,c = {},{},{}'.format(a,b,c))
 k_object = wien.create_kobject(case)
 
 # load in QTL, comment out if not nessecary as very memory intensive
-#QTL,bands,orbitals,E_F = wien.load_qtl(case,verbose=0)
+QTL,bands,orbitals,E_F = wien.load_qtl(case,verbose=0)
 
 
 '''
@@ -78,7 +79,7 @@ spin = {'bool':False}
 orbitalNames_wien = ['0','PX','PY','PZ','DZ2','DX2Y2','DXY','DXZ','DYZ']
 orbitalNames_chinook = ['0','1x','1y','1z','2ZR','2XY','2xy','2xz','2yz']
 
-orbs_Fe = ['32xy','32yz','32xz','32ZR','32XY']
+orbs_Fe = ['32ZR','32XY', '32xy','32xz', '32yz']
 orbs_Se = ['41x','41y','41z']
 orbs = [orbs_Fe,orbs_Fe,orbs_Se,orbs_Se]
 
@@ -108,6 +109,85 @@ hamiltonian_args = {'type':'SK',
                     'cutoff':0, # 2.5
                     'renorm':0, # 1.0
                     'offset':0.0,
-                    'tol':1e-3} # 1e-4
-TB = build_lib.gen_TB(basis,hamiltonian_args)
+                    'tol':-1} # 1e-4
+TB = build_lib.gen_TB(basis,hamiltonian_args,k_object)
+
+
+'''
+Having created the TB model and loaded in all the energy data, we want to see 
+if we can get the bands and QTLs into the Eband and Evec data objects for the 
+TB data object.
+'''
+TB.solve_H() # remember this is what we want to get around...
+
+# this is a subset of bands that crosses the fermi level
+bands_subset = [22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37]
+band0 = bands_subset[0] # bands_subset needs to be ordered and consecutive
+
+# put the bands into the TB object
+shape_eband = (len(k_object.kpts),len(bands_subset))
+Eband = np.zeros(shape_eband)
+for b in bands_subset:
+    print('Inserting band {} as band {}'.format(b,b-band0))
+    for j,k in enumerate(k_object.kpts):
+        Eband[j][b-band0] = bands[b][j]
+TB.Eband = Eband
+
+# put the QTLs into the Evec object
+shape_evec = (len(k_object.kpts),len(bands_subset),len(TB.basis))
+Evec = np.zeros(shape_evec)
+
+# this will be an array simillar to proj from test_fsplotterFncs, in that it
+# will show the way to get the desired orbital characters from the QTL dictionary's
+# arrays.
+wienOrbs = [[1,7], [1,8], [1,9], [1,10], [1,11], # the iron orbitals in the QTL dictionary
+            [1,7], [1,8], [1,9], [1,10], [1,11], # duplicated twice because of two Fe in unit cell
+            [2,3],[2,4],[2,5], # same for selenium, considering px py and pz
+            [2,3],[2,4],[2,5]]
+
+w = lambda x: x/2#np.power(x/2,2) # x/2
+for b in bands_subset:
+    for j,k in enumerate(k_object.kpts):
+        for i,proj in enumerate(wienOrbs):
+            Evec[j][b-band0][i] = w(QTL[b][proj[0]][proj[1]][j])
+TB.Evec = Evec
+
+
+TB.plotting(win_min=E_F-8,win_max=E_F+5) # the energy scale needed to see the first few bands...
+
+dz2 = operator_library.fatbs(proj=[[0,5]],TB=TB,Elims=(E_F-8,E_F+5),degen=True)
+dx2y2 = operator_library.fatbs(proj=[[1,6]],TB=TB,Elims=(E_F-8,E_F+5),degen=True)
+dxy = operator_library.fatbs(proj=[[2,7]],TB=TB,Elims=(E_F-8,E_F+5),degen=True)
+dxz = operator_library.fatbs(proj=[[3,8]],TB=TB,Elims=(E_F-8,E_F+5),degen=True)
+dyz = operator_library.fatbs(proj=[[4,9]],TB=TB,Elims=(E_F-8,E_F+5),degen=True)
+
+px = operator_library.fatbs(proj=[[10,13]],TB=TB,Elims=(E_F-8,E_F+5),degen=True)
+py = operator_library.fatbs(proj=[[11,14]],TB=TB,Elims=(E_F-8,E_F+5),degen=True)
+pz = operator_library.fatbs(proj=[[12,15]],TB=TB,Elims=(E_F-8,E_F+5),degen=True)
+
+
+
+'''
+For the ARPES experiment simulation, we need to define a few variables before we can even begin:
     
+    'cube': dictionary containing the region in k-space in which we want to view the bands.
+            Distances are given in 1/Ang, and the final number is the number of points in that direction to calculate at.
+            
+(the rest are mostly self explanatory)
+
+Our aim is to edit the actual ARPES library files to see how we can avoid having 
+to calculate the band structure again in the region...
+'''
+
+arpes = {'cube':{'X':[-0.628,0.628,300],'Y':[-0.628,0.628,300],'E':[-0.05,0.05,50],'kz':0.0}, #domain of interest
+    'hv':100,                          #photon energy, in eV
+    'T':10,                            #temperature, in K
+    'W':E_F,                           # work function, in this case I've used fermi energy
+    'pol':np.array([1,0,-1]),           #polarization vector
+    'SE':['constant',0.02],            #self-energy, assume for now to be a constant 20 meV for simplicity
+    'resolution':{'E':0.02,'k':0.02}}  #resolution
+
+arpes_experiment = experiment(TB,arpes) #initialize experiment object
+#arpes_experiment.datacube() #execute calculation of matrix elements
+
+#I,Ig,ax = arpes_experiment.spectral(slice_select=('w',0.0))

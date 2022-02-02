@@ -263,13 +263,14 @@ proj = [[1,6,'$D_{z^2}$'],[1,7,'$D_{xy}$'],[1,8,'$D_{x^2 y^2}$']]#,[1,9,'$D_{xz}
 wienPlot.plot_adjacent_dominant_bandCharacter('$\Gamma$', '$M$', k_object, bands, QTL, proj,E_F=E_F)
 '''
 
-'''
+
 # ELEVENTH TEST:
     # going to do a 4x4 subplot grid, each subplot containing the plot around a centre in a given direction
 
-proj=[ [1,7,'$d_{3z^2 - r^2}$'] , [1,8,'$d_{x^2 - y^2}$'] , [1,9,'$d_{xy}$'] ]#, [1,10,'$d_{xz}$'] , [1,11,'$d_{yz}$']]
+#proj=[ [1,7,'$d_{3z^2 - r^2}$'] , [1,8,'$d_{x^2 - y^2}$'] , [1,9,'$d_{xy}$'] ]#, [1,10,'$d_{xz}$'] , [1,11,'$d_{yz}$']]
+proj=[[1,9,'$d_{xy}$'] , [1,10,'$d_{xz}$'] , [1,11,'$d_{yz}$'],[1,7,'$d_{3z^2 - r^2}$']]
 # colours extracted from other paper
-colours =  [(0.930,0.113,0.137),(0.227,0.707,0.289),(0.23,0.336,0.645)] #dispy.get_colors(len(proj))
+colours =  [(0.23,0.336,0.645),(0.930,0.113,0.137),(0.227,0.707,0.289),(0.7,0.3,0.2)] #dispy.get_colors(len(proj))
 
 # extracts unique labels
 t = k_object.labels
@@ -301,7 +302,8 @@ axBig = f.add_subplot(len(labels)+3,1, (len(labels) + 1,len(labels)+3))
 axBig = wienPlot.plot_dominant_bandCharacter(k_object, bands, QTL, proj,E_F=E_F,colours=colours,ax=axBig,suppressLegend=True)
 
 plt.show()
-'''
+
+
 
 
 '''
@@ -328,7 +330,7 @@ for i,p in enumerate(proj):
 plt.show()
 
 
-proj=[ [1,7,'$d_{3z^2 - r^2}$'] , [1,8,'$d_{x^2 - y^2}$'] , [1,9,'$d_{xy}$'] ]#, [1,10,'$d_{xz}$'] , [1,11,'$d_{yz}$']]
+proj=[[1,9,'$d_{xy}$'] , [1,10,'$d_{xz}$'] , [1,11,'$d_{yz}$']]#[ [1,7,'$d_{3z^2 - r^2}$'] , [1,8,'$d_{x^2 - y^2}$'] , [1,9,'$d_{xy}$'] ], [1,10,'$d_{xz}$'] , [1,11,'$d_{yz}$']]
 bands_subset = [28,29,30,31,32] #bands that cross the fermi level
 
 f = plt.figure(0,(16,20),300)
